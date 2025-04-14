@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This is a python implementation of the Ultra High Entropy Pseudo Random Number Generator developed by
 Steve Gibson of grc.com.  Steve was kind enough to release his javascript implementation as public domain
@@ -52,42 +51,43 @@ class _Mash:
     which is good.    See: http://baagoe.com/en/RandomMusings/hash/avalanche.xhtml
     ============================================================================
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.n = 0xefc8249d
 
-    def masher(self, data=None):
-	if (data): 
-	    data = str(data)
-            for i in range(0, len(data)):
+    def masher(self, data: object | None = None) -> float | None:
+        if data:
+            data = str(data)
+            for i in range(len(data)):
                 self.n += ord(data[i])
                 h = 0.02519603282416938 * self.n
-                self.n = h // pow(2, 0) 
-                h -= self.n 
-                h *= self.n 
-                self.n = h // pow(2, 0) 
-                h -= self.n 
+                self.n = int(h)
+                h -= self.n
+                h *= self.n
+                self.n = int(h)
+                h -= self.n
                 self.n += h * 0x100000000
-	    return (self.n // pow(2, 0)) * 2.3283064365386963e-10
-	else:
-            self.n = 0xefc8249d 	
+            return self.n * 2.3283064365386963e-10
+        else:
+            self.n = 0xefc8249d
+            return None
 
 class UHEPRNG:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         arguments: none
         When our "uheprng" is initially invoked our PRNG state is initialized from
         pythons own PRNG. This is okay since although its generator might not
         be wonderful, it's useful for establishing large startup entropy for our usage.
         """
-        self.o = 48 
+        self.o = 48
         self.c = 1
         self.p = self.o
-        self.s = list()
+        self.s: list[float] = list()
         self.mash = _Mash()
-        for i in range(0, self.o):
-            self.s.append(self.mash.masher(random.random))
-            
-    def random(self, range):
+        for _ in range(self.o):
+            self.s.append(self.mash.masher(random.random()))
+
+    def random(self, rng: int) -> int:
         """
         arguments: int range
         returns: a random int in the range 0 to range-1
@@ -97,56 +97,54 @@ class UHEPRNG:
         resolution 53-bit prng (0 to <1), then we multiply this by the caller's
         "range" param and take the "floor" to return a equally probable integer.
         """
-        return int(math.floor(range * (self._rawprng() + (self._rawprng() * (0x200000 | 0)) * 1.1102230246251565e-16)))
+        return int(math.floor(rng * (self._rawprng() + (self._rawprng() * (0x200000)) * 1.1102230246251565e-16)))
 
-    def string(self,count):
+    def string(self, count: int) -> str:
         """
         arguments: int count of printable chars required.
-        returns: a string of chars count chracters long
+        returns: a string of chars count characters long
         This EXPORTED function 'string(n)' returns a pseudo-random string of
         'n' printable characters ranging from chr(33) to chr(126) inclusive.
         """
-        string=str()
-        for i in range(0,count):
-            string+=(chr(33+self.random(94)))
-        return string;
-    
-    def bytes(self,count):
+        result = bytearray()
+        for _ in range(count):
+            result.append(33 + self.random(94))
+        return result.decode('ascii')
+
+    def bytes(self, count: int) -> bytes:
         """
         arguments: int count of bytes required.
         returns: a string of random bytes on the range 0x00 to 0xff
         This EXPORTED function 'bytes(n)' returns a pseudo-random string of
         'n' bytes ranging from chr(0) to chr(255) inclusive.
         """
-        string=str()
-        for i in range(0,count):
-            string+=chr(self.random(256))
-        return string;
-            
-                      
-    def _hashString(self,inStr):
+        result = bytearray()
+        for _ in range(count):
+            result.append(self.random(256))
+        return bytes(result)
+
+    def _hashString(self, inStr: str) -> None:
         """
         """
         inStr = inStr.strip()
         self.mash.masher(inStr)
-        for i in range(0,len(inStr)):
+        for i in range(len(inStr)):
             k = ord(inStr[i])
-            for j  in range(0,self.o):
+            for j in range(self.o):
                 self.s[j] -= self.mash.masher(k)
                 if self.s[j] < 0:
                     self.s[j] += 1
-            
 
-    def _initState(self):
+    def _initState(self) -> None:
         """
         """
         self.mash.masher()
-        for i in range(0, self.o):
-            self.s[i]=self.mash.masher(' ')
+        for i in range(self.o):
+            self.s[i] = self.mash.masher(' ')
         self.c = 1
         self.p = self.o
 
-    def _rawprng(self):
+    def _rawprng(self) -> float:
         """
         This PRIVATE (internal access only) function is the heart of the multiply-with-carry
         (MWC) PRNG algorithm. When called it returns a pseudo-random number in the form of a
@@ -154,12 +152,15 @@ class UHEPRNG:
         [0-1] return function, and by the random 'string(n)' function which returns 'n'
         characters from 33 to 126.
         """
-        self.p += 1 
-        if self.p >= self.o:
-			self.p = 0
+        self.p = (self.p + 1) % self.o
         t = 1768863 * self.s[self.p] + self.c * 2.3283064365386963e-10
-        self.c = int(t) | 0
+        self.c = int(t)
         self.s[self.p] = t - self.c
         return self.s[self.p]
 
-   
+# Example usage
+# if __name__ == "__main__":
+#     prng = UHEPRNG()
+#     print(prng.random(100))
+#     print(prng.string(10))
+#     print(prng.bytes(10).hex())

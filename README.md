@@ -1,12 +1,17 @@
+# Ultra High Entropy Pseudo Random Number Generator (UHEPRNG)
+
 This is a python implementation of the Ultra High Entropy Pseudo Random Number Generator developed by
 Steve Gibson of grc.com.  Steve was kind enough to release his javascript implementation as public domain
 so I wish to do the same for my hacked together python version.
 
-============================================================================
+---
+
 LICENSE AND COPYRIGHT:  THIS CODE IS HEREBY RELEASED INTO THE PUBLIC DOMAIN
 Gibson Research Corporation releases and disclaims ALL RIGHTS AND TITLE IN
 THIS CODE OR ANY DERIVATIVES. Anyone may be freely use it for any purpose.
-============================================================================
+
+---
+
 This is GRC's cryptographically strong PRNG (pseudo-random number generator)
 for JavaScript. It is driven by 1536 bits of entropy, stored in an array of
 48, 32-bit JavaScript variables.  Since many applications of this generator,
@@ -14,14 +19,18 @@ including ours with the "Off The Grid" Latin Square generator, may require
 the deteriministic re-generation of a sequence of PRNs, this PRNG's initial
 entropic state can be read and written as a static whole, and incrementally
 evolved by pouring new source entropy into the generator's internal state.
-----------------------------------------------------------------------------
+
+---
+
 ENDLESS THANKS are due Johannes Baagoe for his careful development of highly
 robust JavaScript implementations of JS PRNGs.  This work was based upon his
 JavaScript "Alea" PRNG which is based upon the extremely robust Multiply-
 With-Carry (MWC) PRNG invented by George Marsaglia. MWC Algorithm References:
 http://www.GRC.com/otg/Marsaglia_PRNGs.pdf
 http://www.GRC.com/otg/Marsaglia_MWC_Generators.pdf
-----------------------------------------------------------------------------
+
+---
+
 The quality of this algorithm's pseudo-random numbers have been verified by
 multiple independent researchers. It handily passes the fermilab.ch tests as
 well as the "diehard" and "dieharder" test suites.  For individuals wishing
@@ -33,21 +42,22 @@ of any size:
 The Fermilab "ENT" tests: http://fourmilab.ch/random/
 The 256-megabyte sample PRN file at GRC: https://www.GRC.com/otg/uheprng.bin
 The Windows scripting host version: https://www.GRC.com/otg/wsh-uheprng.js
-----------------------------------------------------------------------------
+
+---
+
 Qualifying MWC multipliers are: 187884, 686118, 898134, 1104375, 1250205,
 1460910 and 1768863. (We use the largest one that's < 2^21)
-============================================================================
 
-Installation
-------------
+---
 
-$ pip install uheprng
+## Installation
 
-
-Usage
------
+`pip install uheprng`
 
 
+## Usage
+
+```python
 from uheprng import UHEPRNG
 
 uheprng = UHEPRNG()
@@ -69,4 +79,4 @@ for i in range(0,1):
 	buf=str()
 
 fo.close()
-   
+```
